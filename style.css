@@ -1,0 +1,56 @@
+body{
+    background-color: rgb(40, 41, 42);
+    color: white;
+}
+
+h1{
+    text-align: center;
+    text-decoration: solid;
+    font-weight: bold;
+}
+nav{
+    float: left;
+    height: 100%;
+    width: 15%;
+}
+section{
+    float: right;
+    height: 100%;
+    width: 80%;
+}
+#nc{
+    width: 100%;
+    display: inline-block;
+    color: black;
+
+}
+
+#msg{
+    
+    width: 35vw;
+    height: 7vh;
+    
+   border: none;
+}
+#sub{height: 7vh;}
+form {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-left: 6vw;
+}
+header
+{
+    text-decoration: solid;
+    font-weight: bold;
+    font-size: large;
+
+}
+#chat{
+    width: 40vw;
+    height: 72vh;
+    margin-left: 35vw;
+
+    overflow-y: auto;
+}
