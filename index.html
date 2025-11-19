@@ -4,27 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Simulé</title>
+    <title>Chat Simulé – Alice & Bob</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>Chat Simulé</h1>
-    <nav>
-        <p>Projet réalisé par Ayoub Ayed</p>
-        <button id="nc">Nouveau chat</button>
-        <input type="text" id="nomnc" placeholder="Nom du chat" style="display:none;">
-        <ul id="history">Historique</ul>
-    </nav>
+    <aside class="sidebar">
+        <h1>Conversations</h1>
+        <button id="btnNew">Nouvelle discussion</button>
+        <input type="text" id="inpNew" placeholder="Nom de la conv" autocomplete="off">
+        <ul id="listConv"></ul>
+    </aside>
 
-    <main>
-        <header>Nom du chat</header>
-        <div id="chat"></div>
-        <form>
-            <input required type="text" id="msg" placeholder="Tapez votre message...">
-            <button id="sub" type="submit">➤</button>
+    <main class="chatbox">
+        <header>
+            <span id="convTitle">Sélectionnez une conversation</span>
+            <span id="notif" class="notif" aria-label="non-lus">0</span>
+        </header>
+
+        <div id="messages" class="messages"></div>
+
+        <form id="formMsg">
+            <input id="inpMsg" placeholder="Tapez un message…" required>
+            <button type="submit">➤</button>
         </form>
     </main>
+
+    <div id="toast" class="toast"></div>
 
     <script src="script.js"></script>
 </body>
