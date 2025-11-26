@@ -17,7 +17,7 @@ let activeConv  = null; // nom de la conv ouverte
 let unreadMap   = {};   // conv → nombre de messages non lus
 
 /* =========  UTILITAIRES ========= */
-/* Petit sommeire */
+/* Petit sommeil */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* Popup vert temporaire */
@@ -116,25 +116,28 @@ function renderMessages() {
     messages.innerHTML = '';
     if (!activeConv) return;
     const msgs = load('messages').filter(m => m.conv === activeConv);
-    msgs.forEach(m => appendBubble(m.text, m.user));
+    msgs.forEach(m => appendBubble(m.text, m.user, m.date));
     messages.scrollTop = messages.scrollHeight;
 }
 
 /* Crée une bulle (user ou bot) */
-function appendBubble(text, user) {
+function appendBubble(text, user, date) {
     const div = document.createElement('div');
     div.className = 'bulle ' + (user === currentUser ? 'user' : 'bot');
     div.textContent = text;
+    /* ----------  TIME TAG  ---------- */
+    div.setAttribute('data-time', new Date(date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 }
 
 /* Ajoute un message en mémoire + à l’écran */
 function addMessage(text, user) {
+    const date = Date.now();
     const msgs = load('messages');
-    msgs.push({ conv: activeConv, user, text, date: Date.now() });
+    msgs.push({ conv: activeConv, user, text, date });
     save('messages', msgs);
-    appendBubble(text, user);
+    appendBubble(text, user, date);
 
     /* Si le message vient de l’interlocuteur → incrémente non-lus + notif */
     if (user !== currentUser) {
@@ -207,6 +210,15 @@ formMsg.addEventListener('submit', e => {
     inpMsg.value = '';
     simulateReply(); // l’autre va répondre
 });
+
+/* ----------  THEME TOGGLE ---------- */
+const themeBtn = document.getElementById('themeToggle');
+themeBtn.addEventListener('click', () => {
+    document.documentElement.classList.toggle('light');
+    localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
+});
+/* restore preference */
+if (localStorage.getItem('theme') === 'light') document.documentElement.classList.add('light');
 
 /* =========  INITIALISATION ========= */
 window.addEventListener('DOMContentLoaded', () => {
