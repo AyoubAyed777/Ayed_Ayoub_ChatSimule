@@ -275,7 +275,7 @@ body {
 /* ----------  THEME TOGGLE ---------- */
 #themeToggle {
     position: fixed;
-    bottom: 15px;
+    bottom: 1390px;
     right: 100px;
     z-index: 999;
     background: var(--accent);
