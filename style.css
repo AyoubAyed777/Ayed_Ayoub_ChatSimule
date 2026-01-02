@@ -184,6 +184,7 @@ body {
 
 /* THEME BUTTON */
 #themeToggle {
+<<<<<<< HEAD
     position:fixed;
     bottom:15px;
     right:15px;
@@ -195,3 +196,42 @@ body {
     color:#fff;
     cursor:pointer;
 }
+=======
+    position: fixed;
+    bottom: 15px;
+    right: 1390px;
+    z-index: 999;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px #0003;
+    transition: transform .2s;
+}
+
+#themeToggle:hover {
+    transform: scale(1.1);
+}
+
+/* ----------  MOBILE ---------- */
+@media (max-width:700px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 190px;
+        border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .chatbox {
+        height: calc(100vh - 190px);
+    }
+}
+>>>>>>> fbd1488d84a662e9e9a71ad1d27d44be5bda0300
