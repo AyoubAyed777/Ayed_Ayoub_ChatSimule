@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,37 +8,35 @@
 </head>
 
 <body>
-    <!-- Barre latérale : liste des conversations -->
-    <aside class="sidebar">
-        <h1>Conversations</h1>
-        <button id="btnNew">Nouvelle discussion</button>
-        <input type="text" id="inpNew" placeholder="Nom de la conv" autocomplete="off">
-        <ul id="listConv"></ul>
-    </aside>
 
-    <!-- Zone de chat -->
-    <main class="chatbox">
-        <header>
-            <span id="convTitle">Sélectionnez une conversation</span>
-            <!-- Pastille animée (non-lus) -->
-            <span id="notif" class="notif" aria-label="non-lus">0</span>
-        </header>
+<aside class="sidebar">
+    <h1>Conversations</h1>
+    <button id="btnNew">Nouvelle discussion</button>
+    <input type="text" id="inpNew" placeholder="Nom de la conv" autocomplete="off">
+    <ul id="listConv"></ul>
+</aside>
 
-        <div id="messages" class="messages"></div>
+<main class="chatbox">
+    <header>
+        <span id="convTitle">Sélectionnez une conversation</span>
+        <div style="display:flex;gap:.5rem;align-items:center;">
+            <span id="notif" class="notif">0</span>
+            <button id="modeToggle" title="Toggle auto chat">👤</button>
+        </div>
+    </header>
 
-        <form id="formMsg">
-            <input id="inpMsg" placeholder="Tapez un message…" required>
-            <button type="submit">➤</button>
-        </form>
-    </main>
+    <div id="messages" class="messages"></div>
 
-    <!-- Toast (petit popup vert) -->
-    <div id="toast" class="toast"></div>
+    <form id="formMsg">
+        <input id="inpMsg" placeholder="Tapez un message…" required>
+        <button type="submit">➤</button>
+    </form>
+</main>
 
-    <!-- Dark / Light toggle -->
-    <button id="themeToggle" aria-label="Toggle theme">🌓</button>
+<div id="toast" class="toast"></div>
 
-    <script src="script.js"></script>
+<button id="themeToggle">🌓</button>
+
+<script src="script.js"></script>
 </body>
-
 </html>

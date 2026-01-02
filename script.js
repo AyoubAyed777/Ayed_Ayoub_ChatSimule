@@ -1,107 +1,90 @@
-/* =========  ÉLÉMENTS DOM ========= */
-const btnNew   = document.getElementById('btnNew');
-const inpNew   = document.getElementById('inpNew');
+/* ========= DOM ========= */
+const btnNew = document.getElementById('btnNew');
+const inpNew = document.getElementById('inpNew');
 const listConv = document.getElementById('listConv');
-const convTitle= document.getElementById('convTitle');
-const notifEl  = document.getElementById('notif');
+const convTitle = document.getElementById('convTitle');
+const notifEl = document.getElementById('notif');
 const messages = document.getElementById('messages');
-const formMsg  = document.getElementById('formMsg');
-const inpMsg   = document.getElementById('inpMsg');
-const toastEl  = document.getElementById('toast');
+const formMsg = document.getElementById('formMsg');
+const inpMsg = document.getElementById('inpMsg');
+const toastEl = document.getElementById('toast');
+const modeBtn = document.getElementById('modeToggle');
 
-/* =========  CONSTANTES / ÉTAT ========= */
+/* ========= STATE ========= */
 const ALICE = 'Alice';
-const BOB   = 'Bob';
-let currentUser = Math.random() < 0.5 ? ALICE : BOB; // qui est connecté
-let activeConv  = null; // nom de la conv ouverte
-let unreadMap   = {};   // conv → nombre de messages non lus
+const BOB = 'Bob';
 
-/* =========  UTILITAIRES ========= */
-/* Petit sommeil */
+let currentUser = Math.random() < 0.5 ? ALICE : BOB;
+let activeConv = null;
+let unreadMap = {};
+let autoMode = false;
+let autoTimer = null;
+
+/* ========= UTILS ========= */
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-/* Popup vert temporaire */
+function save(k, d) { localStorage.setItem(k, JSON.stringify(d)); }
+function load(k, d = []) {
+    try { return JSON.parse(localStorage.getItem(k)) || d; }
+    catch { return d; }
+}
+
 function toast(msg) {
     toastEl.textContent = msg;
     toastEl.classList.add('show');
     setTimeout(() => toastEl.classList.remove('show'), 2000);
 }
 
-/* Accès localStorage simplifié */
-function save(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-function load(key, def = []) {
-    try { return JSON.parse(localStorage.getItem(key)) || def; }
-    catch { return def; }
-}
-
-/* =========  GESTION DES CONVERSATIONS ========= */
-/* Construit / rafraîchit la liste dans la sidebar */
+/* ========= CONVERSATIONS ========= */
 function buildConvList() {
     listConv.innerHTML = '';
     const names = load('conversations');
+
     names.forEach(name => {
         const li = document.createElement('li');
         li.dataset.name = name;
         if (name === activeConv) li.classList.add('active');
 
-        /* Partie cliquable (texte) */
         const span = document.createElement('span');
         span.textContent = name;
         span.style.flexGrow = '1';
 
-        /* Badge non-lus */
         const badge = document.createElement('span');
         badge.className = 'badge';
         badge.textContent = unreadMap[name] || 0;
         if (!unreadMap[name]) badge.style.display = 'none';
 
-        /* Bouton supprimer */
         const del = document.createElement('button');
         del.textContent = '×';
-        del.style.cssText = 'border:none;background:transparent;color:red;cursor:pointer';
+        del.style.cssText = 'border:none;background:none;color:red;cursor:pointer';
 
         li.append(span, badge, del);
         listConv.appendChild(li);
 
-        /* Événements */
-        span.addEventListener('click', () => openConv(name));
-        badge.addEventListener('click', e => e.stopPropagation()); /* évite ouvrir */
-        del.addEventListener('click',  e => {
+        span.onclick = () => openConv(name);
+        del.onclick = e => {
             e.stopPropagation();
             deleteConv(name);
-        });
+        };
     });
 }
 
-/* Ouvre une conversation */
 function openConv(name) {
     activeConv = name;
-    document.querySelectorAll('.sidebar li').forEach(li => {
-        li.classList.toggle('active', li.dataset.name === name);
-    });
     convTitle.textContent = name;
-    unreadMap[name] = 0;               // on marque comme lu
+    unreadMap[name] = 0;
     save('unread', unreadMap);
     renderMessages();
     buildConvList();
     save('lastConv', name);
 }
 
-/* Supprime une conversation */
 function deleteConv(name) {
-    /* liste */
-    let names = load('conversations');
-    names = names.filter(n => n !== name);
-    save('conversations', names);
-    /* messages */
-    let msgs = load('messages');
-    msgs = msgs.filter(m => m.conv !== name);
-    save('messages', msgs);
-    /* unread */
+    save('conversations', load('conversations').filter(n => n !== name));
+    save('messages', load('messages').filter(m => m.conv !== name));
     delete unreadMap[name];
     save('unread', unreadMap);
 
-    /* si c'était la conv active → on ferme */
     if (activeConv === name) {
         activeConv = null;
         convTitle.textContent = 'Sélectionnez une conversation';
@@ -110,120 +93,154 @@ function deleteConv(name) {
     buildConvList();
 }
 
-/* =========  MESSAGES ========= */
-/* Affiche tous les messages de la conv active */
+/* ========= MESSAGES ========= */
 function renderMessages() {
     messages.innerHTML = '';
     if (!activeConv) return;
-    const msgs = load('messages').filter(m => m.conv === activeConv);
-    msgs.forEach(m => appendBubble(m.text, m.user, m.date));
+
+    load('messages')
+        .filter(m => m.conv === activeConv)
+        .forEach(m => appendBubble(m.text, m.user, m.date));
+
     messages.scrollTop = messages.scrollHeight;
 }
 
-/* Crée une bulle (user ou bot) */
 function appendBubble(text, user, date) {
     const div = document.createElement('div');
     div.className = 'bulle ' + (user === currentUser ? 'user' : 'bot');
     div.textContent = text;
-    /* ----------  TIME TAG  ---------- */
-    div.setAttribute('data-time', new Date(date).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));
+    div.setAttribute(
+        'data-time',
+        new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    );
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
 }
 
-/* Ajoute un message en mémoire + à l’écran */
 function addMessage(text, user) {
     const date = Date.now();
     const msgs = load('messages');
     msgs.push({ conv: activeConv, user, text, date });
     save('messages', msgs);
     appendBubble(text, user, date);
-
-    /* Si le message vient de l’interlocuteur → incrémente non-lus + notif */
-    if (user !== currentUser) {
-        unreadMap[activeConv] = (unreadMap[activeConv] || 0) + 1;
-        save('unread', unreadMap);
-        buildConvList();
-        animateNotif();
-    }
 }
 
-/* Animation de la pastille rouge (header) */
-function animateNotif() {
-    notifEl.textContent = unreadMap[activeConv] || 0;
-    notifEl.classList.add('show');
-    setTimeout(() => notifEl.classList.remove('show'), 1500);
-}
-
-/* Réponse simulée (l’autre personne répond) */
+/* ========= MANUAL REPLY (FIX) ========= */
 async function simulateReply() {
     await sleep(800 + Math.random() * 1200);
+    if (!activeConv || autoMode) return;
+
     const other = currentUser === ALICE ? BOB : ALICE;
-    const reponses = [
-        'D’accord avec toi !',
-        'Hmm, pas sûr…',
-        'Tu as raison.',
-        'Et si on changeait de sujet ?',
-        '😉',
+    const replies = [
+        'D’accord.',
+        'Intéressant.',
+        'Je vois.',
+        'Pas faux.',
         'Bonne remarque.',
-        'Je n’y avais pas pensé.',
-        'Totalement !'
+        'Exact.',
+        'Pourquoi pas ?'
     ];
-    const pick = reponses[Math.floor(Math.random() * reponses.length)];
-    addMessage(pick, other);
+
+    addMessage(
+        replies[Math.floor(Math.random() * replies.length)],
+        other
+    );
 }
 
-/* =========  ÉVÉNEMENTS ========= */
-/* Bouton « Nouvelle discussion » */
-btnNew.addEventListener('click', () => {
+/* ========= AUTO CHAT ========= */
+function autoConversation() {
+    if (!activeConv) return;
+
+    const users = [ALICE, BOB];
+    const replies = [
+        'Oui.',
+        'Exact.',
+        'Je suis d’accord.',
+        'Hmm.',
+        'Continuons.',
+        'Bonne idée.',
+        'Clairement.'
+    ];
+
+    addMessage(
+        replies[Math.floor(Math.random() * replies.length)],
+        users[Math.floor(Math.random() * users.length)]
+    );
+}
+
+/* ========= EVENTS ========= */
+btnNew.onclick = () => {
     btnNew.style.display = 'none';
     inpNew.style.display = 'block';
     inpNew.focus();
-});
+};
 
-/* Validation du nom de conversation (touche Entrée) */
-inpNew.addEventListener('keypress', e => {
+inpNew.onkeypress = e => {
     if (e.key === 'Enter') {
         const name = inpNew.value.trim();
         if (!name) return;
-        let names = load('conversations');
+
+        const names = load('conversations');
         if (!names.includes(name)) {
             names.push(name);
             save('conversations', names);
             toast('Conversation créée');
         }
+
         inpNew.value = '';
         inpNew.style.display = 'none';
         btnNew.style.display = 'block';
+
         buildConvList();
         openConv(name);
     }
-});
+};
 
-/* Envoi d’un message (formulaire) */
-formMsg.addEventListener('submit', e => {
+/* ========= SEND MESSAGE (FIXED) ========= */
+formMsg.onsubmit = e => {
     e.preventDefault();
-    if (!activeConv) { toast('Choisissez une conversation'); return; }
+    if (!activeConv || autoMode) return;
+
     const text = inpMsg.value.trim();
     if (!text) return;
+
     addMessage(text, currentUser);
     inpMsg.value = '';
-    simulateReply(); // l’autre va répondre
-});
 
-/* ----------  THEME TOGGLE ---------- */
+    simulateReply(); // ✅ FIX: reply restored
+};
+
+/* ========= MODE TOGGLE ========= */
+modeBtn.onclick = () => {
+    autoMode = !autoMode;
+
+    if (autoMode) {
+        modeBtn.textContent = '🤖';
+        inpMsg.disabled = true;
+        inpMsg.placeholder = 'Auto conversation…';
+        autoTimer = setInterval(autoConversation, 1500);
+    } else {
+        modeBtn.textContent = '👤';
+        inpMsg.disabled = false;
+        inpMsg.placeholder = 'Tapez un message…';
+        clearInterval(autoTimer);
+    }
+};
+
+/* ========= THEME ========= */
 const themeBtn = document.getElementById('themeToggle');
-themeBtn.addEventListener('click', () => {
+themeBtn.onclick = () => {
     document.documentElement.classList.toggle('light');
-    localStorage.setItem('theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
-});
-/* restore preference */
-if (localStorage.getItem('theme') === 'light') document.documentElement.classList.add('light');
+    save('theme',
+        document.documentElement.classList.contains('light') ? 'light' : 'dark'
+    );
+};
+if (load('theme') === 'light') document.documentElement.classList.add('light');
 
-/* =========  INITIALISATION ========= */
-window.addEventListener('DOMContentLoaded', () => {
+/* ========= INIT ========= */
+window.onload = () => {
     unreadMap = load('unread', {});
     buildConvList();
     const last = load('lastConv');
     if (last) openConv(last);
-});
+};
